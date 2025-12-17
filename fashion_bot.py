@@ -16,7 +16,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # В нем мы говорим: "Эта кнопка должна открыть веб-приложение по адресу https://ваш-сайт.com"
     # Пока мы используем заглушку. Замените позже на реальный адрес вашего мини-приложения.
     keyboard = [
-        [InlineKeyboardButton("🛍️ Открыть каталог", web_app=WebAppInfo(url="https://ваш-хостинг.com/index.html"))]
+        [InlineKeyboardButton("🛍️ Открыть каталог", web_app=WebAppInfo(url="https://github.com/FEATUNDER/TG-BOT-CORE/blob/main/index.html"))]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -87,4 +87,5 @@ def main():
 
 # Этот блок говорит: "Если этот файл запустили напрямую (а не импортировали), то выполни функцию main()"
 if __name__ == '__main__':
+
     main()
