@@ -3,143 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Каталог одежды</title>
+    <title>Магазин Одежды</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Простой стиль для приятного вида */
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { padding: 20px; background: #f5f5f5; color: #333; }
-        .product { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .product img { width: 100%; border-radius: 10px; }
-        .size-buttons { display: flex; gap: 10px; margin: 15px 0; }
-        .size-btn { padding: 10px 15px; border: 2px solid #ddd; background: none; border-radius: 8px; cursor: pointer; }
-        .size-btn.selected { border-color: #007bff; background: #007bff; color: white; }
-        .price { font-size: 24px; font-weight: bold; color: #2ecc71; margin: 10px 0; }
-        input, button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
-        button.submit { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; font-weight: bold; }
+        /* Немного стилей, чтобы выглядело прилично */
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: var(--tg-theme-bg-color, #fff); /* Адаптация под тему Телеграм */
+            color: var(--tg-theme-text-color, #000);
+            padding: 20px; 
+            text-align: center;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: var(--tg-theme-secondary-bg-color, #f9f9f9);
+        }
+        img { max-width: 100%; border-radius: 10px; }
+        select, button {
+            padding: 10px;
+            margin-top: 10px;
+            width: 100%;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            background-color: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #fff);
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .price { font-size: 1.2em; font-weight: bold; color: green; margin: 10px 0; }
     </style>
 </head>
 <body>
-    <h1>👕 Каталог одежды</h1>
-    <p>Выберите товар, размер и оставьте контакты. Мы свяжемся с вами!</p>
 
-    <!-- ТОВАР 1 -->
-    <div class="product" data-product="Футболка оверсайз" data-base-price="1500">
-        <img src="https://via.placeholder.com/400x300/FF6B6B/FFFFFF?text=T-Shirt+Oversize" alt="Футболка">
-        <h2>Футболка оверсайз</h2>
-        <p>Модная хлопковая футболка свободного кроя. Доступна в трех цветах.</p>
-        <div class="size-buttons">
-            <button class="size-btn" data-size="S">S (+0₽)</button>
-            <button class="size-btn" data-size="M">M (+0₽)</button>
-            <button class="size-btn" data-size="L">L (+200₽)</button>
-            <button class="size-btn" data-size="XL">XL (+300₽)</button>
-        </div>
-        <div class="price">1500 ₽</div>
+    <h1>Каталог</h1>
+
+    <div class="card" id="product-1">
+        <img src="https://via.placeholder.com/300x200?text=T-Shirt" alt="Футболка">
+        <h3>Крутая Футболка</h3>
+        <p>100% хлопок, стильная.</p>
+        
+        <select onchange="updatePrice(1, this.value)">
+            <option value="S">Размер S</option>
+            <option value="M">Размер M (+100 руб)</option>
+            <option value="L">Размер L (+200 руб)</option>
+        </select>
+
+        <div class="price" id="price-1">1000 руб.</div>
+        <button onclick="orderItem('Крутая Футболка', 1)">Хочу это!</button>
     </div>
-
-    <!-- ТОВАР 2 -->
-    <div class="product" data-product="Худи с капюшоном" data-base-price="3500">
-        <img src="https://via.placeholder.com/400x300/4ECDC4/FFFFFF?text=Hoodie" alt="Худи">
-        <h2>Худи с капюшоном</h2>
-        <p>Теплое худи из флиса. Идеально для прохладной погоды.</p>
-        <div class="size-buttons">
-            <button class="size-btn" data-size="S">S (+0₽)</button>
-            <button class="size-btn" data-size="M">M (+0₽)</button>
-            <button class="size-btn" data-size="L">L (+300₽)</button>
-        </div>
-        <div class="price">3500 ₽</div>
-    </div>
-
-    <!-- ФОРМА ДЛЯ КОНТАКТОВ -->
-    <h2>Ваши контакты</h2>
-    <input type="text" id="userName" placeholder="Ваше имя (например, Анна)" required>
-    <input type="tel" id="userPhone" placeholder="Ваш телефон (например, +79161234567)" required>
-
-    <!-- КНОПКА ОТПРАВКИ -->
-    <button class="submit" id="submitBtn">📨 Отправить заявку продавцу</button>
 
     <script>
-        // ОБЪЯСНЕНИЕ: Этот код делает страницу "живой".
-        // 1. Он вешает слушателей на кнопки размеров.
-        // 2. Пересчитывает цену при выборе размера.
-        // 3. Собирает все данные и отправляет в бота при нажатии "Отправить".
+        // Инициализируем Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Раскрываем приложение на весь экран
 
-        // Сначала найдем все товары на странице
-        const products = document.querySelectorAll('.product');
+        // Базовые цены
+        const basePrices = { 1: 1000 }; 
+        // Текущие выбранные цены и размеры
+        let currentSelection = { 
+            1: { price: 1000, size: "S" } 
+        };
 
-        // Для каждого товара настроим логику выбора размера
-        products.forEach(product => {
-            const sizeButtons = product.querySelectorAll('.size-btn');
-            const priceElement = product.querySelector('.price');
-            const basePrice = parseInt(product.dataset.basePrice);
+        // Функция обновления цены при смене размера
+        function updatePrice(id, size) {
+            let price = basePrices[id];
+            if (size === 'M') price += 100;
+            if (size === 'L') price += 200;
 
-            // На каждую кнопку размера вешаем "слушатель" кликов
-            sizeButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // Убираем выделение у всех кнопок в этом товаре
-                    sizeButtons.forEach(b => b.classList.remove('selected'));
-                    // Добавляем выделение нажатой кнопке
-                    btn.classList.add('selected');
+            // Обновляем текст на экране
+            document.getElementById(`price-${id}`).innerText = price + " руб.";
+            
+            // Запоминаем выбор
+            currentSelection[id] = { price: price, size: size };
+        }
 
-                    // Пересчитываем цену. Мы храним наценку в тексте кнопки, например: "L (+200₽)"
-                    // Найдем число в скобках с помощью регулярного выражения
-                    const match = btn.textContent.match(/\+(\d+)₽/);
-                    const extraPrice = match ? parseInt(match[1]) : 0;
-                    const totalPrice = basePrice + extraPrice;
-
-                    // Обновляем отображение цены
-                    priceElement.textContent = `${totalPrice} ₽`;
-                });
-            });
-        });
-
-        // Теперь настроим кнопку отправки
-        document.getElementById('submitBtn').addEventListener('click', async () => {
-            // 1. Найдем выбранный товар (простой способ: берем первый, можно улучшить)
-            const selectedProduct = products[0]; // В реальном приложении нужно отслеживать активный товар
-            const productName = selectedProduct.dataset.product;
-
-            // 2. Найдем выбранный размер в этом товаре
-            const selectedSizeBtn = selectedProduct.querySelector('.size-btn.selected');
-            if (!selectedSizeBtn) {
-                alert("Пожалуйста, выберите размер!");
-                return;
-            }
-            const selectedSize = selectedSizeBtn.dataset.size;
-
-            // 3. Получим итоговую цену
-            const finalPrice = selectedProduct.querySelector('.price').textContent.trim();
-
-            // 4. Получим данные из полей ввода
-            const userName = document.getElementById('userName').value.trim();
-            const userPhone = document.getElementById('userPhone').value.trim();
-
-            // 5. Проверим, все ли заполнено
-            if (!userName || !userPhone) {
-                alert("Пожалуйста, заполните имя и телефон!");
-                return;
-            }
-
-            // 6. Упакуем все данные в один объект
-            const data = {
-                user_name: userName,
-                user_phone: userPhone,
-                product: productName,
-                size: selectedSize,
-                price: finalPrice
+        // Функция заказа (Самая важная!)
+        function orderItem(name, id) {
+            let itemData = {
+                item: name,
+                price: currentSelection[id].price,
+                size: currentSelection[id].size
             };
 
-            // 7. ОТПРАВЛЯЕМ ДАННЫЕ В БОТ! Это ключевой момент.
-            // Telegram предоставляет специальный объект `Telegram.WebApp` для связи.
-            if (window.Telegram && Telegram.WebApp) {
-                // Отправляем данные боту и закрываем мини-приложение
-                Telegram.WebApp.sendData(JSON.stringify(data));
-                Telegram.WebApp.close();
-            } else {
-                // Если мы тестируем не в Telegram, покажем данные в консоли
-                console.log("Данные для отправки:", data);
-                alert("Данные готовы к отправке! (В Telegram они ушли бы автоматически)");
-            }
-        });
+            // Отправляем данные боту
+            // tg.sendData превращает объект в строку и закрывает окно
+            tg.sendData(JSON.stringify(itemData)); 
+        }
     </script>
 </body>
 </html>
